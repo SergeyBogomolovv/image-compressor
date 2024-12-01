@@ -2,9 +2,10 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"mime/multipart"
 	"net/http"
+	"os"
+	"path"
 	"sync"
 
 	"github.com/SergeyBogomolovv/image-compressor/internal/domain"
@@ -16,13 +17,14 @@ type Service interface {
 }
 
 type controller struct {
-	service Service
+	service   Service
+	outputDir string
 }
 
-func Register(router *http.ServeMux, service Service) {
-	controller := &controller{service: service}
+func Register(router *http.ServeMux, service Service, outputDir string) {
+	controller := &controller{service: service, outputDir: outputDir}
 	router.HandleFunc("POST /upload", controller.UploadHandler)
-	router.HandleFunc("GET /{id}", controller.GetHandler)
+	router.HandleFunc("GET /download/{name}", controller.DownloadHandler)
 }
 
 func (c *controller) UploadHandler(w http.ResponseWriter, r *http.Request) {
@@ -52,9 +54,25 @@ func (c *controller) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, response, http.StatusCreated)
 }
 
-func (*controller) GetHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	fmt.Println(id)
+func (c *controller) DownloadHandler(w http.ResponseWriter, r *http.Request) {
+	name := r.PathValue("name")
+	filePath := path.Join(c.outputDir, name)
+
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		utils.WriteError(w, utils.NewError("file not found", http.StatusNotFound))
+		return
+	}
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		utils.WriteError(w, utils.NewError("failed to open file", http.StatusInternalServerError))
+		return
+	}
+	defer file.Close()
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", `attachment; filename="`+name+`"`)
+
+	http.ServeFile(w, r, filePath)
 }
 
 func (c *controller) processFiles(ctx context.Context, files []*multipart.FileHeader) <-chan domain.ProcessedImage {

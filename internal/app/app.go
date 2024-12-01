@@ -19,7 +19,7 @@ type App struct {
 func New(log *slog.Logger, cfg *config.Config) *App {
 	router := http.NewServeMux()
 	service := service.New(log, cfg.OutputPath)
-	controller.Register(router, service)
+	controller.Register(router, service, cfg.OutputPath)
 
 	return &App{
 		server: &http.Server{
