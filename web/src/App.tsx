@@ -8,6 +8,7 @@ interface UploadResponse {
 const App = () => {
   const [successLinks, setSuccessLinks] = useState<string[]>([])
   const [errorCount, setErrorCount] = useState<number>(0)
+  const serverUrl = import.meta.env.VITE_SERVER_URL
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return
@@ -18,7 +19,7 @@ const App = () => {
     })
 
     try {
-      const response = await fetch('http://localhost:8080/upload', {
+      const response = await fetch(`${serverUrl}/upload`, {
         method: 'POST',
         body: formData,
       })
@@ -46,14 +47,7 @@ const App = () => {
         <label htmlFor='file-upload' className='upload-button'>
           Загрузить
         </label>
-        <input
-          id='file-upload'
-          type='file'
-          accept='image/*'
-          multiple
-          onChange={handleFileUpload}
-          hidden
-        />
+        <input id='file-upload' type='file' multiple onChange={handleFileUpload} hidden />
       </div>
       <div className='result-section'>
         {successLinks.length > 0 && (
@@ -62,7 +56,7 @@ const App = () => {
             <ul>
               {successLinks.map((link, index) => (
                 <li key={index}>
-                  <a href={`http://localhost:8080/download/${link}`} download>
+                  <a href={`${serverUrl}/download/${link}`} download>
                     {link}
                   </a>
                 </li>
@@ -70,7 +64,7 @@ const App = () => {
             </ul>
           </>
         )}
-        {errorCount > 0 && <h2>Произошли ошибки: {errorCount}</h2>}
+        {errorCount > 0 && <h3>Произошли ошибки: {errorCount}</h3>}
       </div>
     </div>
   )
