@@ -15,6 +15,8 @@ import (
 	"path"
 	"strings"
 	"sync"
+
+	"github.com/SergeyBogomolovv/image-compressor/pkg/utils"
 )
 
 type imageService struct {
@@ -102,7 +104,7 @@ func processImage(ctx context.Context, archive *zip.Writer, img image.Image, nam
 			case <-ctx.Done():
 				return
 			default:
-				data, err := compressJPEG(img, quality)
+				data, err := compressJPEG(img, quality, float64(quality)/110)
 				if err != nil {
 					select {
 					case errs <- err:
@@ -144,9 +146,15 @@ func processImage(ctx context.Context, archive *zip.Writer, img image.Image, nam
 	}
 }
 
-func compressJPEG(img image.Image, quality int) ([]byte, error) {
+func compressJPEG(img image.Image, quality int, scale float64) ([]byte, error) {
+	srcBounds := img.Bounds()
+	newWidth := int(float64(srcBounds.Dx()) * scale)
+	newHeight := int(float64(srcBounds.Dy()) * scale)
+
+	resizedImg := utils.BilinearResize(img, newWidth, newHeight)
+
 	var buff bytes.Buffer
-	if err := jpeg.Encode(&buff, img, &jpeg.Options{Quality: quality}); err != nil {
+	if err := jpeg.Encode(&buff, resizedImg, &jpeg.Options{Quality: quality}); err != nil {
 		return nil, err
 	}
 	return buff.Bytes(), nil
