@@ -8,6 +8,7 @@ import (
 
 	"github.com/SergeyBogomolovv/image-compressor/internal/config"
 	"github.com/SergeyBogomolovv/image-compressor/internal/controller"
+	"github.com/SergeyBogomolovv/image-compressor/internal/middleware"
 	"github.com/SergeyBogomolovv/image-compressor/internal/service"
 )
 
@@ -24,7 +25,7 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 	return &App{
 		server: &http.Server{
 			Addr:    cfg.Addr,
-			Handler: router,
+			Handler: middleware.Cors(router),
 		},
 		log: log,
 	}
