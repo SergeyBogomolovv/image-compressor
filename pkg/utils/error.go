@@ -13,8 +13,8 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("Message: %s, Code: %d", e.Message, e.Code)
 }
 
-func NewError(msg string, code int) *Error {
-	return &Error{
+func NewError(msg string, code int) Error {
+	return Error{
 		Message: msg,
 		Code:    code,
 	}
