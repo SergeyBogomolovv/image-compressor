@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/SergeyBogomolovv/image-compressor/internal/config"
+	"github.com/SergeyBogomolovv/image-compressor/internal/controller"
+	"github.com/SergeyBogomolovv/image-compressor/internal/service"
 )
 
 type App struct {
@@ -16,6 +18,8 @@ type App struct {
 
 func New(log *slog.Logger, cfg *config.Config) *App {
 	router := http.NewServeMux()
+	service := service.New(log, cfg.OutputPath)
+	controller.Register(router, service)
 
 	return &App{
 		server: &http.Server{

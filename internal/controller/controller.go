@@ -12,7 +12,7 @@ import (
 )
 
 type Service interface {
-	CompressImage(ctx context.Context, file *multipart.FileHeader) (string, error)
+	CompressImage(ctx context.Context, header *multipart.FileHeader) (string, error)
 }
 
 type controller struct {
